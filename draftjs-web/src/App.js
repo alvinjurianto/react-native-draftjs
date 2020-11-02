@@ -108,7 +108,7 @@ function App() {
   };
 
   const getSelection = () => {
-    editorState.getSelection();
+    return editorState.getSelection();
   };
 
   const setEditorBlockRenderMap = renderMapString => {
