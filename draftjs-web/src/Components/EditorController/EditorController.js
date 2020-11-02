@@ -10,6 +10,7 @@ const EditorController = ({
   onToggleInlineStyle = () => null
 }) => {
   const selection = editorState.getSelection();
+  console.log(selection, "selectioooooonnnnn");
   const editorBlockType = editorState
     .getCurrentContent()
     .getBlockForKey(selection.getStartKey())
