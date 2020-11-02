@@ -104,7 +104,7 @@ function App() {
   };
 
   const blurTextEditor = () => {
-    _draftEditorRef.current && _draftEditorRef.current.blur();
+    console.log("UMUUUUUU");
   };
 
   const getSelection = () => {
