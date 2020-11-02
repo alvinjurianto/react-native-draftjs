@@ -104,12 +104,11 @@ function App() {
   };
 
   const blurTextEditor = () => {
-    console.log("UMUUUUUU");
+    _draftEditorRef.current && _draftEditorRef.current.blur();
   };
 
   const getSelection = () => {
-    _draftEditorRef.current;
-    return "umu";
+    editorState.getSelection();
   };
 
   const setEditorBlockRenderMap = renderMapString => {
