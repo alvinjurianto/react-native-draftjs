@@ -109,7 +109,7 @@ function App() {
 
   const getSelection = () => {
     _draftEditorRef.current;
-    return _draftEditorRef.current.getSelection();
+    return "umu";
   };
 
   const setEditorBlockRenderMap = renderMapString => {
