@@ -108,8 +108,7 @@ function App() {
   };
 
   const getSelection = () => {
-    const selection = editorState.getSelection();
-    return selection.getStartKey;
+    alert("ngentot cuuuuuuuk");
   };
 
   const setEditorBlockRenderMap = renderMapString => {
