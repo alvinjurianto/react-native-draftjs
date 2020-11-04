@@ -80,7 +80,8 @@ class RNDraftView extends Component {
     if (editorState)
       this.setState({ editorState: editorState.replace(/(\r\n|\n|\r)/gm, "") });
     if (isMounted) this.widgetMounted();
-    if (getSelected) console.log(getSelected);
+    console.log("wihthout the IF");
+    if (getSelected) console.log("getSelected");
   };
 
   widgetMounted = () => {
