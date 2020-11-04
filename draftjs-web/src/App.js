@@ -110,7 +110,7 @@ function App() {
   const getSelection = () => {
     window.ReactNativeWebView.postMessage(
       JSON.stringify({
-        getSelected: "chuckle im in danger"
+        getSelected: "boom boom skapadaw"
       })
     );
   };
@@ -140,6 +140,14 @@ function App() {
     window.ReactNativeWebView.postMessage(
       JSON.stringify({
         editorState: stateToHTML(editorState.getCurrentContent())
+      })
+    );
+  }
+
+  if (window.ReactNativeWebView) {
+    window.ReactNativeWebView.postMessage(
+      JSON.stringify({
+        getSelected: "chuckkle im in danger"
       })
     );
   }
