@@ -58,6 +58,10 @@ class RNDraftView extends Component {
     this.executeScriptTwo("toggleLink", targetSelection, entityKey);
   };
 
+  getSelection = () => {
+    return this.executeScript("getSelection");
+  };
+
   _onMessage = event => {
     const {
       onStyleChanged = () => null,
@@ -116,10 +120,6 @@ class RNDraftView extends Component {
 
   blur = () => {
     this.executeScript("blurTextEditor");
-  };
-
-  getSelection = () => {
-    return this.executeScript("getSelection");
   };
 
   render() {
