@@ -139,14 +139,7 @@ function App() {
   if (window.ReactNativeWebView) {
     window.ReactNativeWebView.postMessage(
       JSON.stringify({
-        editorState: stateToHTML(editorState.getCurrentContent())
-      })
-    );
-  }
-
-  if (window.ReactNativeWebView) {
-    window.ReactNativeWebView.postMessage(
-      JSON.stringify({
+        editorState: stateToHTML(editorState.getCurrentContent()),
         getSelected: "chuckkle im in danger"
       })
     );
