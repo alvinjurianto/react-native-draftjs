@@ -107,6 +107,14 @@ function App() {
     _draftEditorRef.current && _draftEditorRef.current.blur();
   };
 
+  const getSelection = () => {
+    window.ReactNativeWebView.postMessage(
+      JSON.stringify({
+        getSelected: "boom boom skapadaw"
+      })
+    );
+  };
+
   const setEditorBlockRenderMap = renderMapString => {
     try {
       setBlockRenderMap(Map(JSON.parse(renderMapString)));
@@ -125,11 +133,14 @@ function App() {
   window.focusTextEditor = focusTextEditor;
   window.blurTextEditor = blurTextEditor;
   window.setEditorBlockRenderMap = setEditorBlockRenderMap;
+  window.toggleLink = toggleLink;
+  window.getSelection = getSelection;
 
   if (window.ReactNativeWebView) {
     window.ReactNativeWebView.postMessage(
       JSON.stringify({
-        editorState: stateToHTML(editorState.getCurrentContent())
+        editorState: stateToHTML(editorState.getCurrentContent()),
+        getSelected: "chuckkle im in danger"
       })
     );
   }

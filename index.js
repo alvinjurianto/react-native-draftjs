@@ -15,7 +15,9 @@ class RNDraftView extends Component {
     styleSheet: PropTypes.string,
     styleMap: PropTypes.object,
     blockRenderMap: PropTypes.object,
-    onEditorReady: PropTypes.func
+    onEditorReady: PropTypes.func,
+    targetSelection: PropTypes.string,
+    entitykey: PropTypes.string
   };
 
   _webViewRef = React.createRef();
@@ -31,6 +33,15 @@ class RNDraftView extends Component {
       );
   };
 
+  executeScriptTwo = (functionName, parameter, parameterTwo) => {
+    this._webViewRef.current &&
+      this._webViewRef.current.injectJavaScript(
+        `window.${functionName}(${
+          parameter && parameterTwo ? `'${parameter}', '${parameterTwo}'` : ""
+        });true;`
+      );
+  };
+
   setBlockType = blockType => {
     this.executeScript("toggleBlockType", blockType);
   };
@@ -43,13 +54,29 @@ class RNDraftView extends Component {
     return this.state.editorState;
   };
 
+  setLink = () => {
+    this.executeScriptTwo("toggleLink", targetSelection, entityKey);
+  };
+
+  getSelection = () => {
+    return this.executeScript("getSelection");
+  };
+
   _onMessage = event => {
     const {
       onStyleChanged = () => null,
       onBlockTypeChanged = () => null
     } = this.props;
     const { data } = event.nativeEvent;
-    const { blockType, styles, editorState, isMounted } = JSON.parse(data);
+    const {
+      blockType,
+      styles,
+      editorState,
+      isMounted,
+      getSelected
+    } = JSON.parse(data);
+    console.log("wihthout the IF");
+    console.log("data is here:", data);
     onStyleChanged(styles ? styles.split(",") : []);
     if (blockType) onBlockTypeChanged(blockType);
     if (editorState)
@@ -105,6 +132,7 @@ class RNDraftView extends Component {
 
   render() {
     const { style = { flex: 1 } } = this.props;
+
     return (
       <WebView
         ref={this._webViewRef}
@@ -115,12 +143,14 @@ class RNDraftView extends Component {
             : { uri: "file:///android_asset/draftjs-source.html" }
         }
         useWebKit={true}
-        keyboardDisplayRequiresUserAction={false}
+        keyboardDisplayRequiresUserAction={true}
         originWhitelist={["*"]}
         onMessage={this._onMessage}
+        hideKeyboardAccessoryView={true}
       />
     );
   }
+  git;
 }
 
 export default RNDraftView;
