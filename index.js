@@ -75,13 +75,13 @@ class RNDraftView extends Component {
       isMounted,
       getSelected
     } = JSON.parse(data);
+    console.log("wihthout the IF");
+    console.log("data is here:", data);
     onStyleChanged(styles ? styles.split(",") : []);
     if (blockType) onBlockTypeChanged(blockType);
     if (editorState)
       this.setState({ editorState: editorState.replace(/(\r\n|\n|\r)/gm, "") });
     if (isMounted) this.widgetMounted();
-    console.log("wihthout the IF");
-    console.log("data is here:", data);
   };
 
   widgetMounted = () => {
