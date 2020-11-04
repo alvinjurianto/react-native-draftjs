@@ -108,7 +108,11 @@ function App() {
   };
 
   const getSelection = () => {
-    window.ReactNativeWebView.postMessage("chuckle im in danger");
+    window.ReactNativeWebView.postMessage(
+      JSON.stringify({
+        getSelected: "chuckle im in danger"
+      })
+    );
   };
 
   const setEditorBlockRenderMap = renderMapString => {
