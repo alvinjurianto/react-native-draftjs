@@ -107,14 +107,6 @@ function App() {
     _draftEditorRef.current && _draftEditorRef.current.blur();
   };
 
-  const getSelection = () => {
-    window.ReactNativeWebView.postMessage(
-      JSON.stringify({
-        getSelected: "boom boom skapadaw"
-      })
-    );
-  };
-
   const setEditorBlockRenderMap = renderMapString => {
     try {
       setBlockRenderMap(Map(JSON.parse(renderMapString)));
@@ -123,6 +115,20 @@ function App() {
       console.error(e);
     }
   };
+
+  if (window.ReactNativeWebView) {
+    const currentContent = editorState.getCurrentContent();
+    const getSelected = editorState.getSelection();
+    const anchorKey = getSelected.getAnchorKey();
+    const currentContentBlock = currentContent.getBlockForKey(anchorKey);
+    const start = getSelected.getStartOffset();
+    const end = getSelected.getEndOffset();
+    window.ReactNativeWebView.postMessage(
+      JSON.stringify({
+        getSelected: currentContentBlock.getText().slice(start, end)
+      })
+    );
+  }
 
   window.toggleBlockType = toggleBlockType;
   window.toggleInlineStyle = toggleInlineStyle;
@@ -133,14 +139,12 @@ function App() {
   window.focusTextEditor = focusTextEditor;
   window.blurTextEditor = blurTextEditor;
   window.setEditorBlockRenderMap = setEditorBlockRenderMap;
-  window.toggleLink = toggleLink;
-  window.getSelection = getSelection;
+  // window.getSelection = getSelection
 
   if (window.ReactNativeWebView) {
     window.ReactNativeWebView.postMessage(
       JSON.stringify({
-        editorState: stateToHTML(editorState.getCurrentContent()),
-        getSelected: "chuckkle im in danger"
+        editorState: stateToHTML(editorState.getCurrentContent())
       })
     );
   }
