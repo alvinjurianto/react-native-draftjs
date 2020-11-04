@@ -1,154 +1,178 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- * @flow
- */
-
-import React, { useState, useEffect } from "react";
+import React, { useState, createRef, useEffect } from "react";
 import {
-  SafeAreaView,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-  Text,
-  Platform
-} from "react-native";
-import KeyboardSpacer from "react-native-keyboard-spacer";
-import RNDraftView from "react-native-draftjs-editor";
+  Editor,
+  EditorState,
+  RichUtils,
+  getDefaultKeyBinding,
+  DefaultDraftBlockRenderMap
+} from "draft-js";
+import { stateFromHTML } from "draft-js-import-html";
+import { stateToHTML } from "draft-js-export-html";
+import { Map } from "immutable";
+import EditorController from "./Components/EditorController/EditorController";
 
-const ControlButton = ({ text, action, isActive }) => {
-  return (
-    <TouchableOpacity
-      style={[
-        styles.controlButtonContainer,
-        isActive ? { backgroundColor: "gold" } : {}
-      ]}
-      onPress={action}
-    >
-      <Text>{text}</Text>
-    </TouchableOpacity>
-  );
-};
+/**
+ * For testing the post messages
+ * in web
+ */
+// window.ReactNativeWebView ={};
+// window.ReactNativeWebView.postMessage = value => console.log(value);
 
-const EditorToolBar = ({
-  activeStyles,
-  blockType,
-  toggleStyle,
-  toggleBlockType
-}) => {
-  return (
-    <View style={styles.toolbarContainer}>
-      <ControlButton
-        text={"B"}
-        isActive={activeStyles.includes("BOLD")}
-        action={() => toggleStyle("BOLD")}
-      />
-      <ControlButton
-        text={"I"}
-        isActive={activeStyles.includes("ITALIC")}
-        action={() => toggleStyle("ITALIC")}
-      />
-      <ControlButton
-        text={"H"}
-        isActive={blockType === "header-one"}
-        action={() => toggleBlockType("header-one")}
-      />
-      <ControlButton
-        text={"ul"}
-        isActive={blockType === "unordered-list-item"}
-        action={() => toggleBlockType("unordered-list-item")}
-      />
-      <ControlButton
-        text={"ol"}
-        isActive={blockType === "ordered-list-item"}
-        action={() => toggleBlockType("ordered-list-item")}
-      />
-      <ControlButton
-        text={"--"}
-        isActive={activeStyles.includes("STRIKETHROUGH")}
-        action={() => toggleStyle("STRIKETHROUGH")}
-      />
-    </View>
-  );
-};
+function App() {
+  const _draftEditorRef = createRef();
+  const [editorState, setEditorState] = useState(EditorState.createEmpty());
+  const [placeholder, setPlaceholder] = useState("");
+  const [editorStyle, setEditorStyle] = useState("");
+  const [styleMap, setStyleMap] = useState({});
+  const [blockRenderMap, setBlockRenderMap] = useState(Map({}));
+  const [isMounted, setMountStatus] = useState(false);
 
-const styleMap = {
-  STRIKETHROUGH: {
-    textDecoration: "line-through"
-  }
-};
+  useEffect(() => {
+    if (!isMounted) {
+      setMountStatus(true);
+      /**
+       * componentDidMount action goes here...
+       */
+      if (window.ReactNativeWebView) {
+        window.ReactNativeWebView.postMessage(
+          JSON.stringify({
+            isMounted: true
+          })
+        );
+      }
+    }
+  }, [isMounted]);
 
-const App = () => {
-  const _draftRef = React.createRef();
-  const [activeStyles, setActiveStyles] = useState([]);
-  const [blockType, setActiveBlockType] = useState("unstyled");
-  const [editorState, setEditorState] = useState("");
-
-  const defaultValue =
-    "<h1>A Full fledged Text Editor</h1><p>This editor is built with Draft.js. Hence should be suitable for most projects. However, Draft.js Isn’t fully compatible with mobile yet. So you might face some issues.</p><p><br></p><p>This is a simple implementation</p><ul>  <li>It contains <strong>Text formatting </strong>and <em>Some blocks formatting</em></li>  <li>Each for it’s own purpose</li></ul><p>You can also do</p><ol>  <li>Custom style map</li>  <li>Own css styles</li>  <li>Custom block styling</li></ol><p>You are welcome to try it!</p>";
-
-  const editorLoaded = () => {
-    _draftRef.current && _draftRef.current.focus();
+  const handleKeyCommand = (command, editorState) => {
+    const newState = RichUtils.handleKeyCommand(editorState, command);
+    if (newState) {
+      setEditorState(newState);
+      return true;
+    }
+    return false;
   };
 
-  const toggleStyle = style => {
-    _draftRef.current && _draftRef.current.setStyle(style);
+  const mapKeyToEditorCommand = e => {
+    switch (e.keyCode) {
+      case 9: // TAB
+        const newEditorState = RichUtils.onTab(
+          e,
+          editorState,
+          4 /* maxDepth */
+        );
+        if (newEditorState !== editorState) {
+          setEditorState(newEditorState);
+        }
+        return;
+      default:
+        return getDefaultKeyBinding(e);
+    }
   };
 
   const toggleBlockType = blockType => {
-    _draftRef.current && _draftRef.current.setBlockType(blockType);
+    setEditorState(RichUtils.toggleBlockType(editorState, blockType));
   };
 
-  useEffect(() => {
-    /**
-     * Get the current editor state in HTML.
-     * Usually keep it in the submit or next action to get output after user has typed.
-     */
-    setEditorState(_draftRef.current ? _draftRef.current.getEditorState() : "");
-  }, [_draftRef]);
-  console.log(editorState);
+  const toggleInlineStyle = inlineStyle => {
+    setEditorState(RichUtils.toggleInlineStyle(editorState, inlineStyle));
+  };
+
+  const setDefaultValue = html => {
+    try {
+      if (html) {
+        setEditorState(EditorState.createWithContent(stateFromHTML(html)));
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const setEditorPlaceholder = placeholder => {
+    setPlaceholder(placeholder);
+  };
+
+  const setEditorStyleSheet = styleSheet => {
+    setEditorStyle(styleSheet);
+  };
+
+  const setEditorStyleMap = editorStyleMap => {
+    setStyleMap(editorStyleMap);
+  };
+
+  const focusTextEditor = () => {
+    _draftEditorRef.current && _draftEditorRef.current.focus();
+  };
+
+  const blurTextEditor = () => {
+    _draftEditorRef.current && _draftEditorRef.current.blur();
+  };
+
+  const setEditorBlockRenderMap = renderMapString => {
+    try {
+      setBlockRenderMap(Map(JSON.parse(renderMapString)));
+    } catch (e) {
+      setBlockRenderMap(Map({}));
+      console.error(e);
+    }
+  };
+
+  if (window.ReactNativeWebView) {
+    const currentContent = editorState.getCurrentContent();
+    const getSelected = editorState.getSelection();
+    const anchorKey = getSelected.getAnchorKey();
+    const currentContentBlock = currentContent.getBlockForKey(anchorKey);
+    const start = getSelected.getStartOffset();
+    const end = getSelected.getEndOffset();
+    window.ReactNativeWebView.postMessage(
+      JSON.stringify({
+        getSelected: currentContentBlock.getText().slice(start, end)
+      })
+    );
+  }
+
+  window.toggleBlockType = toggleBlockType;
+  window.toggleInlineStyle = toggleInlineStyle;
+  window.setDefaultValue = setDefaultValue;
+  window.setEditorPlaceholder = setEditorPlaceholder;
+  window.setEditorStyleSheet = setEditorStyleSheet;
+  window.setEditorStyleMap = setEditorStyleMap;
+  window.focusTextEditor = focusTextEditor;
+  window.blurTextEditor = blurTextEditor;
+  window.setEditorBlockRenderMap = setEditorBlockRenderMap;
+  // window.getSelection = getSelection
+
+  if (window.ReactNativeWebView) {
+    window.ReactNativeWebView.postMessage(
+      JSON.stringify({
+        editorState: stateToHTML(editorState.getCurrentContent())
+      })
+    );
+  }
+
+  const customBlockRenderMap = DefaultDraftBlockRenderMap.merge(blockRenderMap);
 
   return (
-    <SafeAreaView style={styles.containerStyle}>
-      <RNDraftView
-        defaultValue={defaultValue}
-        onEditorReady={editorLoaded}
-        style={{ flex: 1 }}
-        placeholder={"Add text here..."}
-        ref={_draftRef}
-        onStyleChanged={setActiveStyles}
-        onBlockTypeChanged={setActiveBlockType}
-        styleMap={styleMap}
+    <>
+      <style>
+        {`.public-DraftEditorPlaceholder-root{position: absolute;color: silver;pointer-events: none;z-index: -10000;}${editorStyle}`}
+      </style>
+      <Editor
+        ref={_draftEditorRef}
+        customStyleMap={styleMap}
+        blockRenderMap={customBlockRenderMap}
+        editorState={editorState}
+        onChange={setEditorState}
+        handleKeyCommand={handleKeyCommand}
+        keyBindingFn={mapKeyToEditorCommand}
+        placeholder={placeholder}
       />
-      <EditorToolBar
-        activeStyles={activeStyles}
-        blockType={blockType}
-        toggleStyle={toggleStyle}
-        toggleBlockType={toggleBlockType}
+      <EditorController
+        editorState={editorState}
+        onToggleBlockType={toggleBlockType}
+        onToggleInlineStyle={toggleInlineStyle}
       />
-      {Platform.OS === "ios" ? <KeyboardSpacer /> : null}
-    </SafeAreaView>
+    </>
   );
-};
-
-const styles = StyleSheet.create({
-  containerStyle: {
-    flex: 1,
-    marginTop: 36
-  },
-  toolbarContainer: {
-    height: 56,
-    flexDirection: "row",
-    backgroundColor: "silver",
-    alignItems: "center",
-    justifyContent: "space-around"
-  },
-  controlButtonContainer: {
-    padding: 8,
-    borderRadius: 2
-  }
-});
+}
 
 export default App;

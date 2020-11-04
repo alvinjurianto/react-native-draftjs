@@ -15,30 +15,20 @@ class RNDraftView extends Component {
     styleSheet: PropTypes.string,
     styleMap: PropTypes.object,
     blockRenderMap: PropTypes.object,
-    onEditorReady: PropTypes.func,
-    targetSelection: PropTypes.string,
-    entitykey: PropTypes.string
+    onEditorReady: PropTypes.func
   };
 
   _webViewRef = React.createRef();
 
   state = {
-    editorState: ""
+    editorState: "",
+    getSelected: ""
   };
 
   executeScript = (functionName, parameter) => {
     this._webViewRef.current &&
       this._webViewRef.current.injectJavaScript(
         `window.${functionName}(${parameter ? `'${parameter}'` : ""});true;`
-      );
-  };
-
-  executeScriptTwo = (functionName, parameter, parameterTwo) => {
-    this._webViewRef.current &&
-      this._webViewRef.current.injectJavaScript(
-        `window.${functionName}(${
-          parameter && parameterTwo ? `'${parameter}', '${parameterTwo}'` : ""
-        });true;`
       );
   };
 
@@ -54,12 +44,8 @@ class RNDraftView extends Component {
     return this.state.editorState;
   };
 
-  setLink = () => {
-    this.executeScriptTwo("toggleLink", targetSelection, entityKey);
-  };
-
   getSelection = () => {
-    return this.executeScript("getSelection");
+    return this.state.getSelected;
   };
 
   _onMessage = event => {
@@ -75,13 +61,14 @@ class RNDraftView extends Component {
       isMounted,
       getSelected
     } = JSON.parse(data);
-    console.log("wihthout the IF");
-    console.log("data is here:", data);
+    console.log("editorState", typeof editorState, editorState);
+    console.log("getSelected", typeof getSelected, getSelected);
     onStyleChanged(styles ? styles.split(",") : []);
     if (blockType) onBlockTypeChanged(blockType);
     if (editorState)
       this.setState({ editorState: editorState.replace(/(\r\n|\n|\r)/gm, "") });
     if (isMounted) this.widgetMounted();
+    if (getSelected) this.setState({ getSelected: getSelected });
   };
 
   widgetMounted = () => {
@@ -132,7 +119,6 @@ class RNDraftView extends Component {
 
   render() {
     const { style = { flex: 1 } } = this.props;
-
     return (
       <WebView
         ref={this._webViewRef}
@@ -143,14 +129,12 @@ class RNDraftView extends Component {
             : { uri: "file:///android_asset/draftjs-source.html" }
         }
         useWebKit={true}
-        keyboardDisplayRequiresUserAction={true}
+        keyboardDisplayRequiresUserAction={false}
         originWhitelist={["*"]}
         onMessage={this._onMessage}
-        hideKeyboardAccessoryView={true}
       />
     );
   }
-  git;
 }
 
 export default RNDraftView;
