@@ -116,6 +116,32 @@ function App() {
     }
   };
 
+  const toggleLink = (targetSelection, urlValue) => {
+    const contentState = editorState.getCurrentContent();
+    const contentStateWithEntity = contentState.createEntity(
+      "LINK",
+      "MUTABLE",
+      { url: urlValue }
+    );
+    const entityKey = contentStateWithEntity.getLastCreatedEntityKey();
+    const newEditorState = EditorState.set(editorState, {
+      currentContent: contentStateWithEntity
+    });
+    setEditorState(
+      RichUtils.toggleLink(
+        newEditorState,
+        newEditorState.getSelection(),
+        entityKey
+      )
+    );
+    window.ReactNativeWebView.postMessage(
+      JSON.stringify({
+        editor: targetSelection,
+        url: urlValue
+      })
+    );
+  };
+
   if (window.ReactNativeWebView) {
     const currentContent = editorState.getCurrentContent();
     const getSelected = editorState.getSelection();
@@ -139,7 +165,7 @@ function App() {
   window.focusTextEditor = focusTextEditor;
   window.blurTextEditor = blurTextEditor;
   window.setEditorBlockRenderMap = setEditorBlockRenderMap;
-  // window.getSelection = getSelection
+  window.toggleLink = toggleLink;
 
   if (window.ReactNativeWebView) {
     window.ReactNativeWebView.postMessage(
@@ -165,6 +191,8 @@ function App() {
         handleKeyCommand={handleKeyCommand}
         keyBindingFn={mapKeyToEditorCommand}
         placeholder={placeholder}
+        autoCorrect="off"
+        autoCapitalize="false"
       />
       <EditorController
         editorState={editorState}

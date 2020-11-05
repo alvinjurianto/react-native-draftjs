@@ -32,6 +32,15 @@ class RNDraftView extends Component {
       );
   };
 
+  executeScriptTwo = (functionName, parameterOne, parameterTwo) => {
+    this._webViewRef.current &&
+      this._webViewRef.current.injectJavaScript(
+        `window.${functionName}(${parameterOne ? `'${parameterOne}'` : ""}, ${
+          parameterTwo ? `'${parameterTwo}'` : ""
+        });true;`
+      );
+  };
+
   setBlockType = blockType => {
     this.executeScript("toggleBlockType", blockType);
   };
@@ -48,6 +57,10 @@ class RNDraftView extends Component {
     return this.state.getSelected;
   };
 
+  toggleLink = (targetSelection, entityKey) => {
+    this.executeScriptTwo("toggleLink", targetSelection, entityKey);
+  };
+
   _onMessage = event => {
     const {
       onStyleChanged = () => null,
@@ -59,16 +72,19 @@ class RNDraftView extends Component {
       styles,
       editorState,
       isMounted,
-      getSelected
+      getSelected,
+      editor,
+      url
     } = JSON.parse(data);
-    console.log("editorState", typeof editorState, editorState);
-    console.log("getSelected", typeof getSelected, getSelected);
+
     onStyleChanged(styles ? styles.split(",") : []);
     if (blockType) onBlockTypeChanged(blockType);
     if (editorState)
       this.setState({ editorState: editorState.replace(/(\r\n|\n|\r)/gm, "") });
     if (isMounted) this.widgetMounted();
     if (getSelected) this.setState({ getSelected: getSelected });
+    if (editor) console.log("text passed :", editor);
+    if (url) console.log("url passed :", url);
   };
 
   widgetMounted = () => {
