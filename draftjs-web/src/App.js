@@ -4,7 +4,8 @@ import {
   EditorState,
   RichUtils,
   getDefaultKeyBinding,
-  DefaultDraftBlockRenderMap
+  DefaultDraftBlockRenderMap,
+  CompositeDecorator
 } from "draft-js";
 import { stateFromHTML } from "draft-js-import-html";
 import { stateToHTML } from "draft-js-export-html";
@@ -20,7 +21,26 @@ import EditorController from "./Components/EditorController/EditorController";
 
 function App() {
   const _draftEditorRef = createRef();
-  const [editorState, setEditorState] = useState(EditorState.createEmpty());
+
+  const Linkah = props => {
+    const { url } = props.contentState.getEntity(props.entityKey).getData();
+    return (
+      <a href={url} class={"linklink"}>
+        {props.children}
+      </a>
+    );
+  };
+
+  const decorator = new CompositeDecorator([
+    {
+      strategy: findLinkEntities,
+      component: Linkah
+    }
+  ]);
+
+  const [editorState, setEditorState] = useState(
+    EditorState.createEmpty(decorator)
+  );
   const [placeholder, setPlaceholder] = useState("");
   const [editorStyle, setEditorStyle] = useState("");
   const [styleMap, setStyleMap] = useState({});
@@ -96,6 +116,11 @@ function App() {
   };
 
   const setEditorStyleMap = editorStyleMap => {
+    window.ReactNativeWebView.postMessage(
+      JSON.stringify({
+        editorStyled: "yay"
+      })
+    );
     setStyleMap(editorStyleMap);
   };
 
@@ -116,7 +141,7 @@ function App() {
     }
   };
 
-  const toggleLink = (targetSelection, urlValue) => {
+  const toggleLink = urlValue => {
     const contentState = editorState.getCurrentContent();
     const contentStateWithEntity = contentState.createEntity(
       "LINK",
@@ -136,7 +161,6 @@ function App() {
     );
     window.ReactNativeWebView.postMessage(
       JSON.stringify({
-        editor: targetSelection,
         url: urlValue
       })
     );
@@ -177,10 +201,26 @@ function App() {
 
   const customBlockRenderMap = DefaultDraftBlockRenderMap.merge(blockRenderMap);
 
+  function findLinkEntities(contentBlock, callback, contentState) {
+    contentBlock.findEntityRanges(character => {
+      const entityKey = character.getEntity();
+      window.ReactNativeWebView.postMessage(
+        JSON.stringify({
+          resulting:
+            entityKey !== null &&
+            contentState.getEntity(entityKey).getType() === "LINK"
+        })
+      );
+      return (
+        entityKey !== null &&
+        contentState.getEntity(entityKey).getType() === "LINK"
+      );
+    }, callback);
+  }
   return (
     <>
       <style>
-        {`.public-DraftEditorPlaceholder-root{position: absolute;color: silver;pointer-events: none;z-index: -10000;}${editorStyle}`}
+        {`a span{color:  rgb(48, 80, 192);} .public-DraftEditorPlaceholder-root{position: absolute;color: silver;pointer-events: none;z-index: -10000;}${editorStyle}`}
       </style>
       <Editor
         ref={_draftEditorRef}
