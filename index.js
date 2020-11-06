@@ -57,8 +57,8 @@ class RNDraftView extends Component {
     return this.state.getSelected;
   };
 
-  toggleLink = (targetSelection, entityKey) => {
-    this.executeScriptTwo("toggleLink", targetSelection, entityKey);
+  toggleLink = urlValue => {
+    this.executeScript("toggleLink", urlValue);
   };
 
   _onMessage = event => {
@@ -73,8 +73,9 @@ class RNDraftView extends Component {
       editorState,
       isMounted,
       getSelected,
-      editor,
-      url
+      url,
+      resulting,
+      editorStyled
     } = JSON.parse(data);
 
     onStyleChanged(styles ? styles.split(",") : []);
@@ -83,8 +84,9 @@ class RNDraftView extends Component {
       this.setState({ editorState: editorState.replace(/(\r\n|\n|\r)/gm, "") });
     if (isMounted) this.widgetMounted();
     if (getSelected) this.setState({ getSelected: getSelected });
-    if (editor) console.log("text passed :", editor);
     if (url) console.log("url passed :", url);
+    if (resulting) console.log(resulting);
+    if (editorStyled) console.log("huh", editorStyled);
   };
 
   widgetMounted = () => {
