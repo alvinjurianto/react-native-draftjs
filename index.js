@@ -15,7 +15,8 @@ class RNDraftView extends Component {
     styleSheet: PropTypes.string,
     styleMap: PropTypes.object,
     blockRenderMap: PropTypes.object,
-    onEditorReady: PropTypes.func
+    onEditorReady: PropTypes.func,
+    autofocuss: PropTypes.bool
   };
 
   _webViewRef = React.createRef();
@@ -73,9 +74,7 @@ class RNDraftView extends Component {
       editorState,
       isMounted,
       getSelected,
-      url,
-      resulting,
-      editorStyled
+      url
     } = JSON.parse(data);
 
     onStyleChanged(styles ? styles.split(",") : []);
@@ -85,8 +84,6 @@ class RNDraftView extends Component {
     if (isMounted) this.widgetMounted();
     if (getSelected) this.setState({ getSelected: getSelected });
     if (url) console.log("url passed :", url);
-    if (resulting) console.log(resulting);
-    if (editorStyled) console.log("huh", editorStyled);
   };
 
   widgetMounted = () => {
@@ -147,9 +144,10 @@ class RNDraftView extends Component {
             : { uri: "file:///android_asset/draftjs-source.html" }
         }
         useWebKit={true}
-        keyboardDisplayRequiresUserAction={false}
+        keyboardDisplayRequiresUserAction={this.props.autofocuss}
         originWhitelist={["*"]}
         onMessage={this._onMessage}
+        hideKeyboardAccessoryView={true}
       />
     );
   }
