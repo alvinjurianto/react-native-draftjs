@@ -16,7 +16,8 @@ class RNDraftView extends Component {
     styleMap: PropTypes.object,
     blockRenderMap: PropTypes.object,
     onEditorReady: PropTypes.func,
-    autofocuss: PropTypes.bool
+    autofocuss: PropTypes.bool,
+    setBlurState: PropTypes.func
   };
 
   _webViewRef = React.createRef();
@@ -74,7 +75,8 @@ class RNDraftView extends Component {
       editorState,
       isMounted,
       getSelected,
-      url
+      url,
+      blurState
     } = JSON.parse(data);
 
     onStyleChanged(styles ? styles.split(",") : []);
@@ -84,6 +86,7 @@ class RNDraftView extends Component {
     if (isMounted) this.widgetMounted();
     if (getSelected) this.setState({ getSelected: getSelected });
     if (url) console.log("url passed :", url);
+    if (blurState === false) this.props.setBlurState();
   };
 
   widgetMounted = () => {
@@ -131,7 +134,6 @@ class RNDraftView extends Component {
   blur = () => {
     this.executeScript("blurTextEditor");
   };
-
   render() {
     const { style = { flex: 1 } } = this.props;
     return (
